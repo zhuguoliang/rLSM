@@ -25,7 +25,7 @@ This is the main source code repository for rust-LSM.
 
 All discussion on github issues.
 
-* [GitHub Issues] - Direct questions about using the language.
+* [GitHub Issues] - Direct questions about using this wheel.
 
 [GitHub Issues]: https://github.com/zhuguoliang/rLSM/issues
 
