@@ -165,3 +165,9 @@ fn test_read_component()
 fn empty(b: &mut Bencher) {
     b.iter(|| 1)
 }
+
+#[bench]
+fn benchmark_read_component(b: &mut Bencher)
+{
+    b.iter(|| test_read_component());
+}

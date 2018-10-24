@@ -11,7 +11,7 @@ This is the main source code repository for rust-LSM.
 ### Building on *nix
 1. Make sure you have installed the dependencies:
 
- * rust nightly
+ * rustc 1.31.0 nightly
 
 2. Clone the [source] with `git`:
 
