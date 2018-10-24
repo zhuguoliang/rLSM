@@ -1,5 +1,7 @@
+#![feature(test)]
 extern crate bit_vec;
 extern crate rand;
+extern crate test;
 use bit_vec::BitVec;
 pub mod bloom_filter;
 pub mod component;

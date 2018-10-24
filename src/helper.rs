@@ -34,13 +34,30 @@ pub fn flush_vec_to_file(u8vec:&mut Vec<u8>, fname:&String)
 {
     //using scope to control file open range
     //Reading files
-    let mut fvalues = match OpenOptions::new().write(true).open(&fname) {
+    let mut f = match OpenOptions::new().write(true).open(&fname) {
         Err(why)=> panic!("could not open due to  {}", why),
-        Ok(fvalues)=> fvalues,
+        Ok(f)=> f,
     };
     // Now trying to write vec<u8> to file 
-    match fvalues.write_all(&u8vec) {
+    match f.write_all(&u8vec) {
         Err(why)=> panic!("cannot write to file due to {}",why),
         Ok(())=> println!("Succefully written to file {}",fname),
     }
+}
+
+pub fn append_last_n_to_file(u8vec:&mut Vec<u8>, fname:&String,n:usize)
+{
+    assert!(n>=u8vec.len(),"There is no more than {} element in component",n);
+    
+    let mut f = match OpenOptions::new().write(true).append(true).open(&fname) {
+        Err(why)=> panic!("could not open due to  {}", why),
+        Ok(f)=> f,
+    };
+
+    let target=u8vec[u8vec.len()-n .. u8vec.len()].to_vec();
+    match f.write_all(&target) {
+        Err(why)=> panic!("cannot write to file due to {}",why),
+        Ok(())=> println!("Succefully written to file {}",fname),
+    }
+
 }

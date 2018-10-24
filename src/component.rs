@@ -1,9 +1,12 @@
+#![feature(test)]
 //Component
 //组件是LSM树实现中的核心数据结构
 use std::fs::File;
 use std::fs;
 use std::io;
+use test::Bencher;
 use helper;
+
 //size of u64
 const KEY_SIZE: usize = 8;
 //align to make rust add padding so that every component will fit in cache
@@ -92,7 +95,8 @@ impl Component{
     value_size:usize,filename_size:usize) {
         let filename_keys=helper::get_files_name(&name,&self.component_id,"k",filename_size);
         let filename_values=helper::get_files_name(&name,&self.component_id,"v",filename_size);
-
+        helper::append_last_n_to_file(&mut self.keys, &filename_keys, n);
+        helper::append_last_n_to_file(&mut self.values, &filename_values, n);
     }
 }
 
@@ -154,4 +158,10 @@ fn test_read_component()
     //c.read_disk_component("hello".to_string(), 20);
     c.read_disk_component("hello".to_string(), 10, 3.to_string(), 10, 10, 20);
     
+}
+
+
+#[bench]
+fn empty(b: &mut Bencher) {
+    b.iter(|| 1)
 }
