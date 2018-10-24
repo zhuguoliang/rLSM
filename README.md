@@ -1,4 +1,4 @@
-# The Rust Programming Language
+# The Rust LSM
 
 This is the main source code repository for rust-LSM. 
 
@@ -17,7 +17,7 @@ This is the main source code repository for rust-LSM.
 
    ```sh
    $ git clone https://github.com/zhuguoliang/rLSM.git
-   $ cd rust
+   $ cd rLSM
    ```
 
 ## Getting Help
