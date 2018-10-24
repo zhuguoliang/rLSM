@@ -2,6 +2,8 @@ extern crate bit_vec;
 extern crate rand;
 use bit_vec::BitVec;
 pub mod bloom_filter;
+pub mod component;
+pub mod helper;
 use bloom_filter::IndexT;
 use bloom_filter::BloomFilter;
 static BLOOM_SIZE:IndexT=128;
@@ -38,15 +40,15 @@ fn main() {
     println!("Test of check: \n key present  {0} \n key absent {1} \n",b.bloom_check(1),b.bloom_check(71));   
 
     //test bloom occupency
-    let _SIZE_BITS:IndexT=1000000;
+    let _size_bits:IndexT=1000000;
     let mut b:BloomFilter=BloomFilter{
             hashes:7,
-            size:_SIZE_BITS,
+            size:_size_bits,
             count:1,
             //table:BitVec::with_capacity(bloom_size)
-            table:BitVec::from_elem(_SIZE_BITS as usize,false)
+            table:BitVec::from_elem(_size_bits as usize,false)
     };
-    for k in 1.._SIZE_BITS{
+    for k in 1.._size_bits{
         b.bloom_add(k);
     }
     println!("number of bits set {0} / {1}\n",b.count,b.size);

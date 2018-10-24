@@ -138,15 +138,15 @@ fn test_bloom_basic(){
 
 #[test]
 fn test_bloom_occupancy(){
-    let _SIZE_BITS:IndexT=1000000;
+    let _size_bits:IndexT=1000000;
     let mut b:BloomFilter=BloomFilter{
             hashes:7,
-            size:_SIZE_BITS,
+            size:_size_bits,
             count:1,
             //table:BitVec::with_capacity(bloom_size)
-            table:BitVec::from_elem(_SIZE_BITS as usize,false)
+            table:BitVec::from_elem(_size_bits as usize,false)
     };
-    for k in 1.._SIZE_BITS{
+    for k in 1.._size_bits{
         b.bloom_add(k);
     }
 }
@@ -154,20 +154,20 @@ fn test_bloom_occupancy(){
 
 #[test]
 fn test_bloom_false_positive(){
-let _SIZE_BITS:IndexT=1000000;
+let _size_bits:IndexT=1000000;
     let mut b:BloomFilter=BloomFilter{
             hashes:7,
-            size:_SIZE_BITS,
+            size:_size_bits,
             count:1,
             //table:BitVec::with_capacity(bloom_size)
-            table:BitVec::from_elem(_SIZE_BITS as usize,false)
+            table:BitVec::from_elem(_size_bits as usize,false)
     };
     let rand_max:IndexT = 100000000;
     let top:IndexT=100000;
     let mut test_occurences:IndexT=0;
     let mut occurences:IndexT=0;
     let mut rng=thread_rng();
-    for i in 1..(top+1) {
+    for _i in 1..(top+1) {
         let r:IndexT=rng.gen_range(0,rand_max);
         b.bloom_add(r);
         if b.bloom_check(r) {
@@ -176,7 +176,7 @@ let _SIZE_BITS:IndexT=1000000;
     }
     println!("Test occurences : {0} / 100", test_occurences);
 
-    for i in 1..(top+1) {
+    for _i in 1..(top+1) {
         let r:IndexT = rng.gen_range(0,rand_max);
         if b.bloom_check(r) {occurences = occurences + 1;} 
     }
