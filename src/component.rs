@@ -17,10 +17,10 @@ const COMPONENT_SIZE:usize = 32;
 #[repr(align(64))]
 #[derive(Debug)]
 pub struct Component{
-    keys:DataT,//int array every key is vec<u8>
-    values:DataT,//every value is vec<u8>
-    pub ne:usize,
-    pub s:usize,//u64个数
+    keys:DataT,     //key   Vec<u8>
+    values:DataT,   //value Vec<u8>
+    pub ne:usize,   //number of KV pair 
+    pub s:usize,    //means capacity of components
     pub component_id:String
 }
 //key_size u64 (value_size is for each value vec<u8>)
@@ -30,8 +30,8 @@ impl Component{
                 ne:usize, component_id:String) ->Component{
         Component{
             //keys:Vec::with_capacity(component_size*(mem::size_of::<u64> as usize)),
-            keys:Vec::with_capacity(ne),
-            values:Vec::with_capacity(ne),
+            keys:Vec::with_capacity(component_size),
+            values:Vec::with_capacity(component_size),
             //values:vec![0u8,(component_size*(mem::size_of::<u64> as usize)) as u8],
             ne:ne,
             s:component_size,
