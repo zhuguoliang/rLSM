@@ -6,6 +6,7 @@ use bit_vec::BitVec;
 pub mod bloom_filter;
 pub mod component;
 pub mod helper;
+pub mod global_conf;
 use bloom_filter::IndexT;
 use bloom_filter::BloomFilter;
 static BLOOM_SIZE:IndexT=128;

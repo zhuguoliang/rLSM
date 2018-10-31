@@ -51,7 +51,6 @@ pub fn load_file_to_vec1(resvec:&mut Vec<u8>, fname:&String, one_size:usize,
         Err(why)=> panic!("cannot read from file due to {}",why),
         Ok(readsize)=> println!("Succefully read {} bytes", readsize ),
     }; 
-
     //match  
 }
 
@@ -110,15 +109,16 @@ pub fn flush_vec_to_file1(u8vec:&mut Vec<u8>, fname:&String)
 
 }
 
-pub fn append_last_n_to_file(u8vec:&mut Vec<Vec<u8>>, fname:&String,n:usize)
+pub fn append_last_n_to_file(u8vec:&mut Vec<Vec<u8>>, fname:&String, n:usize)
 {
-    assert!(n>=u8vec.len(),"There is no more than {} element in component",n);
+    println!("current u8vec len is {}",u8vec.len());
+    assert!(n<=u8vec.len(),"There is no more than {} element in component",n);
     let f = match OpenOptions::new().append(true).open(&fname) {
         Err(why)=> panic!("could not open due to  {}", why),
-        Ok(f)=> f,
+        Ok(f)=> f
     };
     let mut f=BufWriter::new(f);
-    for i in u8vec.len()-n..u8vec.len() {
+    for i in (u8vec.len()-n)..u8vec.len() {
         match f.write_all(&u8vec[i]){
             Err(why)=> panic!("Could not write due to {}",why),
             Ok(_writtensize)=> (),
