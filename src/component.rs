@@ -115,6 +115,35 @@ impl Component{
         helper::append_last_n_to_file(&mut self.values, &filename_values, n);
     }
 
+    pub fn read_value(&mut self,index:usize,name:String,component_index:usize)-> Vec<u8>{
+        let filename_values=helper::get_files_name(&name,&component_index.to_string(),"v",global_conf::FILENAME_SIZE);
+        helper::read_from_index(&filename_values, index, self.value_size)
+    }
+//     // Read value at given index in the component on dis
+// void read_value(char* value, int index, char* name, int component_index, int value_size,
+//                 int filename_size){
+//     if (value == NULL) value = (char*) malloc(value_size*sizeof(char));
+//     char* filename = (char *) calloc(filename_size + 8,sizeof(char));
+//     // Reading the found value at the corresponding index
+//     get_files_name_disk(filename, name, component_index, "v",
+//                    filename_size);
+
+//     FILE* fd = fopen(filename, "rb");
+//     // Get the file descriptor
+//     // int fint = fileno(fd);
+//     // printf("File descriptor: %d\n", fint);
+//     if (fd == NULL){
+//         perror("fopen");
+//     }
+//     fseek(fd, index*value_size*sizeof(char), SEEK_SET);
+//     fread(value, value_size, 1, fd);
+//     fclose(fd);
+
+//     // free memory
+//     free(filename);
+// }
+
+
 }
 
 #[test]
@@ -228,6 +257,34 @@ fn test_append_n_kvpair()
     c.write_disk_component("hello".to_string());
     c.read_disk_component("hello".to_string(), 3.to_string());
     c.append_on_disk(2, "hello".to_string());
+}
+
+#[test]
+fn test_read_index()
+{
+    let cpt_size=100;
+    let cpt_num = 10;
+    let val_size = 8;
+    let mut c:Component = Component::new(cpt_size, val_size, 3.to_string());
+    let _createres = match c.create_disk_component("hello".to_string(), cpt_num){
+        Err(why)=> panic!("could not open due to  {}", why),
+        Ok(())=> println!("Succefully created component on disk"),
+    };
+    for entry in 0..3{
+        let mut key = Vec::new();
+        let mut value = Vec::new();
+        for i in 100..(100+global_conf::KEY_SIZE) {
+            key.push((i+entry) as u8);
+        }
+        for j in 200..(200+val_size) {
+            value.push((j+entry) as u8);
+        }
+        c.push_kv(key, value);
+    } 
+    c.write_disk_component("hello".to_string());
+    c.read_disk_component("hello".to_string(), 3.to_string());
+    let resvec:Vec<u8>=c.read_value(2, "hello".to_string(), 3);
+    println!("{:?}",resvec );
 }
 
 #[bench]

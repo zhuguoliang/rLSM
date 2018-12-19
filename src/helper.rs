@@ -1,7 +1,7 @@
 //This is helper function for this project
 use std::io::prelude::*;
 use std::fs::OpenOptions;
-use std::io::{Read,BufReader,BufWriter};
+use std::io::{Read,BufReader,BufWriter,SeekFrom};
 //use std::fs::File;
 pub fn get_files_name(name:&String, component_id:&String, 
     component_type:&str, filename_size:usize) ->String {
@@ -39,22 +39,6 @@ pub fn load_file_to_vec(resvec:&mut Vec<Vec<u8>>, fname:&String, one_size:usize,
     }
 }
 
-pub fn load_file_to_vec1(resvec:&mut Vec<u8>, fname:&String, one_size:usize,
-        ne:usize){
-    let f = match OpenOptions::new().read(true).open(fname) {
-                Err(why)=> panic!("could not open due to  {}", why),
-                Ok(fkeys)=> fkeys,
-            };
-    let f =BufReader::new(f);
-
-    match f.take((one_size*ne) as u64).read_to_end(resvec) {
-        Err(why)=> panic!("cannot read from file due to {}",why),
-        Ok(readsize)=> println!("Succefully read {} bytes", readsize ),
-    }; 
-    //match  
-}
-
-
 pub fn flush_vec_to_file(u8vec:&mut Vec<Vec<u8>>, fname:&String)
 {
        //using scope to control file open range
@@ -74,41 +58,6 @@ pub fn flush_vec_to_file(u8vec:&mut Vec<Vec<u8>>, fname:&String)
     }
 }
 
-pub fn flush_vec_to_file0(u8vec:&mut Vec<u8>, fname:&String)
-{
-    //using scope to control file open range
-    //Reading files
-    let mut f = match OpenOptions::new().write(true).open(&fname) {
-        Err(why)=> panic!("could not open due to  {}", why),
-        Ok(f)=> f,
-    };
-    // Now trying to write vec<u8> to file 
-    match f.write_all(&u8vec) {
-        Err(why)=> panic!("cannot write to file due to {}",why),
-        Ok(())=> println!("Succefully written to file {}",fname),
-    }
-}
-//buffered version
-pub fn flush_vec_to_file1(u8vec:&mut Vec<u8>, fname:&String)
-{
-    //using scope to control file open range
-    //Reading files
-    let f = match OpenOptions::new().write(true).open(&fname) {
-        Err(why)=> panic!("could not open due to  {}", why),
-        Ok(f)=> f,
-    };
-    let mut f=BufWriter::new(f);
-    match f.write_all(&u8vec) {
-        Err(why)=> panic!("cannot write to file due to {}",why),
-        Ok(())=> println!("Succefully written to file {}",fname),
-    } 
-     match f.flush() {
-        Err(why)=> panic!("cannot flush to file due to {}",why),
-        Ok(())=> println!("Succefully flush to file {}",fname),
-    } 
-
-}
-
 pub fn append_last_n_to_file(u8vec:&mut Vec<Vec<u8>>, fname:&String, n:usize)
 {
     println!("current u8vec len is {}",u8vec.len());
@@ -125,7 +74,27 @@ pub fn append_last_n_to_file(u8vec:&mut Vec<Vec<u8>>, fname:&String, n:usize)
         }
     } 
 }
+//read a vec<u8> of len item_size from fname file
+pub fn read_from_index(fname:&String,index:usize, item_size:usize)->Vec<u8>{
+    let f=match OpenOptions::new().read(true).open(&fname) {
+        Err(why)=> panic!("could not open due to  {}", why),
+        Ok(f)=> f    
+    };
+    let mut file=BufReader::new(f);
+    let mut resvec:Vec<u8> = Vec::with_capacity(item_size);
 
+    match file.seek(SeekFrom::Start((index*item_size)as u64)) {
+        Err(why)=> panic!("cannot seek from file due to {}",why),
+        Ok(currentpos)=> ()
+    }
+    
+    //take unit is bytes
+    match file.take((item_size)as u64).read_to_end(&mut resvec) {
+       Err(why)=> panic!("cannot read from file due to {}",why),
+       Ok(readsize)=> println!("Succefully read {} bytes", readsize ),
+    };
+    resvec
+}
 // fn transform_u32_to_array_of_u8(x:u32) -> [u8;4] {
 //     let b1 : u8 = ((x >> 24) & 0xff) as u8;
 //     let b2 : u8 = ((x >> 16) & 0xff) as u8;
