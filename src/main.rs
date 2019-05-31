@@ -7,6 +7,8 @@ pub mod bloom_filter;
 pub mod component;
 pub mod helper;
 pub mod global_conf;
+pub mod lsm;
+//pub mod heap;
 use bloom_filter::IndexT;
 use bloom_filter::BloomFilter;
 static BLOOM_SIZE:IndexT=128;

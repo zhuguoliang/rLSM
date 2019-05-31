@@ -15,20 +15,23 @@ pub struct Component{
     values:global_conf::DataT,   //value Vec<u8>
     value_size:usize, //value size in byte means in Vec<Vec<u8>>, the sizeof each inner vec 
     pub ne:usize,   //number of KV pair 
-    pub s:usize,    //means capacity of components
+    pub s:usize,    //capacity of components
     pub component_id:String
 }
 impl Component{
-    pub fn new(component_size:usize, value_size:usize, 
+    //component_size : kv num capacity
+    //value_size : value size in u8
+    //ne : current kv num in component, should not be initialized
+    pub fn new(component_size:&usize, value_size:usize,
                 component_id:String) ->Component{
         Component{
             //keys:Vec::with_capacity(component_size*(mem::size_of::<u64> as usize)),
-            keys:Vec::with_capacity(component_size),
-            values:Vec::with_capacity(component_size),
+            keys:Vec::with_capacity(component_size.to_owned()),
+            values:Vec::with_capacity(component_size.to_owned()),
             value_size:value_size,
-            //values:vec![0u8,(component_size*(mem::size_of::<u64> as usize)) as u8],
             ne:0,
-            s:component_size,
+            //values:vec![0u8,(component_size*(mem::size_of::<u64> as usize)) as u8],
+            s:component_size.to_owned(),
             component_id:component_id
         }
     }
@@ -149,7 +152,7 @@ impl Component{
 #[test]
 fn test_init(){
     let c_size:usize = 100;
-    let ne:usize=10;
+    let ne:usize=0;//we should not init ne
     let c_id:String="012312".to_string();
     let value_size = 32;
     let _c:Component = Component{
@@ -168,10 +171,10 @@ fn test_create_disk_component()
     let val_size=8;
     let component_size=10;
     let cpt_num = 10;
-    let mut c:Component = Component::new(component_size, val_size, 3.to_string());
+    let mut c:Component = Component::new(&component_size, val_size, 3.to_string());
     let _created = match c.create_disk_component("hello".to_string(), cpt_num){
         Err(why)=> panic!("could not create due to  {}", why),
-        Ok(())=> println!("Succefully created component on disk"), 
+        Ok(())=> println!("Successfully created component on disk"),
     };
 
 }
@@ -183,10 +186,10 @@ fn test_write_component()
     let val_size = 8;
     let component_size=10;
     let cpt_num = 10;
-    let mut c:Component = Component::new(component_size, val_size, 3.to_string());
+    let mut c:Component = Component::new(&component_size, val_size, 3.to_string());
     let _createres = match c.create_disk_component("hello".to_string(), cpt_num){
         Err(why)=> panic!("could not open due to  {}", why),
-        Ok(())=> println!("Succefully created component on disk"),
+        Ok(())=> println!("Successfully created component on disk"),
     };
 
     for _entry in 0..2{
@@ -210,10 +213,10 @@ fn test_read_component()
     let cpt_size=100;
     let cpt_num = 10;
     let val_size = 8;
-    let mut c:Component = Component::new(cpt_size, val_size, 3.to_string());
+    let mut c:Component = Component::new(&cpt_size, val_size, 3.to_string());
     let _createres = match c.create_disk_component("hello".to_string(), cpt_num){
         Err(why)=> panic!("could not open due to  {}", why),
-        Ok(())=> println!("Succefully created component on disk"),
+        Ok(())=> println!("Successfully created component on disk"),
     };
 
     for _entry in 0..2{
@@ -238,10 +241,10 @@ fn test_append_n_kvpair()
     let cpt_size=100;
     let cpt_num = 10;
     let val_size = 8;
-    let mut c:Component = Component::new(cpt_size, val_size, 3.to_string());
+    let mut c:Component = Component::new(&cpt_size, val_size, 3.to_string());
     let _createres = match c.create_disk_component("hello".to_string(), cpt_num){
         Err(why)=> panic!("could not open due to  {}", why),
-        Ok(())=> println!("Succefully created component on disk"),
+        Ok(())=> println!("Successfully created component on disk"),
     };
     for _entry in 0..3{
         let mut key = Vec::new();
@@ -265,10 +268,10 @@ fn test_read_index()
     let cpt_size=100;
     let cpt_num = 10;
     let val_size = 8;
-    let mut c:Component = Component::new(cpt_size, val_size, 3.to_string());
+    let mut c:Component = Component::new(&cpt_size, val_size,3.to_string());
     let _createres = match c.create_disk_component("hello".to_string(), cpt_num){
         Err(why)=> panic!("could not open due to  {}", why),
-        Ok(())=> println!("Succefully created component on disk"),
+        Ok(())=> println!("Successfully created component on disk"),
     };
     for entry in 0..3{
         let mut key = Vec::new();

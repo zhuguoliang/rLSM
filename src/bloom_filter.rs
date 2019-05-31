@@ -1,7 +1,9 @@
 extern crate bit_vec;
-extern crate rand;
-//use std::rand::Rng;
-use rand::prelude::*;
+//extern crate rand;
+//use rand::Rng;
+//use rand::prelude::*;
+use rand::thread_rng;
+use rand::Rng;
 use bit_vec::BitVec;
 
 pub type IndexT= u64;

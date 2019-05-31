@@ -7,95 +7,126 @@ use test::Bencher;
 use helper;
 use component::Component;
 use bloom_filter::BloomFilter;
+use rand::Rng;
+use global_conf;
+use bit_vec::BitVec;
 
-// // First version: finit number of components
-// typedef struct LSM_tree {
-//     char *name;
-//     // C0 and buffer are in main memory
-//     component *C0;
-//     component *buffer;
-//     int Ne; // Total number of key/value tuples stored
-//     int Nc; // Number of file components, ie components on disk
-//     int value_size; // Upper bound on the value size (in number of chars)
-//     int filename_size; // Size of the name, will be used to mainpulate filename
-//     // TODO: linked list for infinite number oc components?
-//     int *Cs_Ne; // List of number of elements per component: [C0, buffer, C1, C2,...]
-//     int *Cs_size; // List of number of elements per component: [C0, buffer, C1, C2,...]
-//     bloom_filter_t *bloom;
-// } LSM_tree;
 
 #[repr(align(64))]
 #[derive(Debug)]
 pub struct LSM_tree{
     pub name:String,
-    pub C0:Component,
-    pub buffer:Component,
     pub ne:usize,//total KV pair count 
     pub nc:usize,
     pub value_size:usize,
     pub filename_size:usize,
-    pub Cs_Ne:Vec<u64>, //kv pair count in each component in sequence [C0, buffer, C1, C2,...]
-    pub bloom:BloomFilter //size of component in sequence [C0, buffer, C1, C2,...]
+    pub Cs_size:Vec<u64>, //size of component in sequence [C0, buffer, C1, C2,...]
+    //pub Cs_Ne:Vec<u64>, //kv pair count in each component in sequence [C0, buffer, C1, C2,...]
+    pub C0:Component,
+    pub buffer:Component,
+    pub bloom:BloomFilter 
 }
 
-
-// // Init first elements of an LSM_tree:
-// //  - name
-// //  - buffer
-// //  - C0
-// //  - filename_size (size of name)
-// //  - Ne (initliazed to 0)
-// void init_lsm(LSM_tree *lsm, char* name, int filename_size){
-//     lsm->name = (char*)calloc(filename_size, sizeof(char));
-//     strcpy(lsm->name, name);
-//     lsm->buffer = (component *) malloc(sizeof(component));
-//     lsm->C0 = (component *) malloc(sizeof(component));
-//     lsm->filename_size = filename_size;
-//     lsm->Ne = 0;
-//     if (BLOOM_ON) lsm->bloom = (bloom_filter_t *) malloc(sizeof(bloom_filter_t));
-// }
-
+// Initialize C0 and buffer (on memory)
+// init_component(lsm->C0, Cs_size, value_size, lsm->Cs_Ne, "C0");
+// init_component(lsm->buffer, Cs_size + 1, value_size, lsm->Cs_Ne + 1,  "buffer");
 impl LSM_tree{
-// pub name:String,
-//     pub C0:Component,
-    // pub buffer:Component,
-    // pub ne:usize,
-    // pub nc:usize,
-    // pub value_size:usize,
-    // pub filename_size:usize
-    // pub Cs_Ne:Vec<u64>,
-    // bloom:BloomFilter
-    pub fn init(&mut self, name:&String, filename_size:usize){
-        let self.name = name;
-        let self.buffer = 
+    //by default we recommend use new
+    pub fn init(&mut self, name:&String, Cs_size:Vec<u64>, nc:usize,
+    filename_size:usize,value_size:usize){
+        //let NE:usize = 0;
+        let cs_ne_size = nc + 2;
+        //assert size is consistent in Cs_size Cs_Ne and nc
+
+        //let buffer_size =
+        self.name = name.to_string();
+        self.ne = 0;
+        self.nc = nc;
+        self.filename_size = filename_size;
+        self.value_size = value_size;
+        self.Cs_size = Cs_size.clone();
+        //self.Cs_Ne = Vec::with_capacity(cs_ne_size);
+        //self.Cs_Ne = Vec::with_capacity(cs_ne_size);
+        self.C0 = Component::new(&(Cs_size[0] as usize), value_size, "C0".to_owned());
+        self.buffer = Component::new(&(Cs_size[1] as usize), value_size,  "buffer".to_owned());
+        self.bloom = BloomFilter{
+            hashes:global_conf::HASHES,
+            size:global_conf::BLOOM_SIZE,
+            count:0,
+            table:BitVec::from_elem(global_conf::BLOOM_SIZE as usize,false)
+        };
     }
-    pub fn new(&mut self, name:String, nc:usize, ne:usize,cs_size:usize, 
-        value_size:usize, filename_size:usize) ->LSM_tree{
+    pub fn new(name:&String, Cs_size:Vec<u64>, nc:usize,
+    filename_size:usize,value_size:usize)->LSM_tree{
+        let cs_ne_size = nc + 2; 
         LSM_tree{
-            name:name,
-            C0:Component::new(cs_size,value_size,1,"C0"),
-            buffer:Component::new();
-
-        Component::new(component_size, VALUE_SIZE, ne, 3.to_string());
-
+            name:name.to_string(),
+            nc:nc,
+            ne:0,
+            filename_size:filename_size,
+            value_size:value_size,
+            Cs_size:Cs_size.clone(),
+            C0:Component::new(&(Cs_size[0] as usize),value_size,"C0".to_owned()),
+            buffer:Component::new(&(Cs_size[1] as usize), value_size,  "buffer".to_owned()),
+            bloom: BloomFilter{
+                hashes:global_conf::HASHES,
+                size:global_conf::BLOOM_SIZE,
+                count:0,
+                table:BitVec::from_elem(global_conf::BLOOM_SIZE as usize,false)
+            }
+        //Component::new(component_size, VALUE_SIZE, ne, 3.to_string());
         }
     }
 
 }
 
 
-// void build_lsm(LSM_tree *lsm, char* name, int Nc, int* Cs_size, int value_size,
-//                int filename_size){
-//     // Allocate memory and create lsm
-//     create_lsm(lsm, name, Nc, Cs_size, value_size, filename_size);
+// Create LSM Tree with a fixed number of component Nc with
+// initialization of the components on memory & on disk (create
+// the files inside the folder).
+// Check if folder exists and clean it if needed.
+// Save metadata and memory component for recovery.
+// TODO: check the validity of the args
+//void build_lsm(LSM_tree *lsm, char* name, int Nc, int* Cs_size, int value_size,
+//               int filename_size){
 
-//     // Initialize C0 and buffer (on memory)
-//     init_component(lsm->C0, Cs_size, value_size, lsm->Cs_Ne, "C0");
-//     init_component(lsm->buffer, Cs_size + 1, value_size, lsm->Cs_Ne + 1,  "buffer");
+//}
 
 #[test]
-test_init(){
+fn test_init_lsmt(){
     let name = "test".to_string();
     let filename_size:usize=32;
+    let SIZE:u64 = 1000;
+    let Cs_size = vec![SIZE, 3*SIZE, 9*SIZE, 27*SIZE, 
+    81*SIZE, 3*81*SIZE, 729*SIZE, 3*729*SIZE,1000000000];
+    //let Cs_ne = vec![0,0,0,0,0,0,0,0,0]
+    let Nc = 7;
+    let ml = LSM_tree::new(&name, Cs_size,Nc,filename_size,global_conf::VALUE_SIZE);
+}
+
+// Generate a LSMT with num_elements (keys [0, num_elements[, value: 'aa..aa_{key%1000}' )
+// arg: sorted too insert keys in sorted order or not.
+// Return the execution time
+#[test]
+fn test_LSMTree_generation(){
+    /*
+let sorted:usize = 0;
+let num_elements:usize = 10000;
+let mut rng = rand::thread_rng();
+    if sorted==0 {
+        for i in 0..num_elements {
+            array[i] = i;
+        }
+        //randomize array for test 
+        for i in 0..num_elements {
+            let tmp = array[i];
+            let randIndex:usize = rng.gen();
+            array[i] = array[randIndex];
+            array[randIndex] = tmp;
+        }
+    }
+
+*/
+
 
 }
